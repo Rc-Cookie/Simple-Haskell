@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=yes, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="index.css">
+    <title>Simple Haskell</title>
+</head>
+<body>
+<h1>Patentierter Haskell-zu-Simple-Haskell-Transformator</h1>
+
+<section>
+    <h2>Input</h2>
+
+    <label for="input">AST (<i>Abstract Syntax Tree</i>) des zu vereinfachenden Haskell-Ausdrucks:</label>
+    <br>
+    <pre id="input" contenteditable="true" oninput="colorize(this)" class="ast-input colorize" spellcheck="false">call(
+  lambda(
+    ("x"),
+    data("Succ", "x")
+  ),
+  data("Nats")
+)</pre>
+    <button onclick="simplify()">Konvertieren zu Simple-Haskell</button>
+    <div id="error" style="margin-top: 10px"></div>
+</section>
+
+<section id="output-section" hidden>
+    <h2>Output</h2>
+    <label for="output-mode">Display-Modes</label>
+    <select id="output-mode" onchange="updateOutput()">
+        <option value="after-only" selected>Nur Nachher</option>
+        <option value="inline">Vorher und Nachher zusammen</option>
+        <option value="separate">Vorher und Nachher separat</option>
+    </select>
+    <br>
+    <button onclick="copy()" style="margin: 10px 10px 0 0">Ausgabe kopieren</button>
+    <br>
+    <pre id="output"></pre>
+</section>
+
+<section>
+    <h2>Beispiel</h2>
+    <table class="syntax-table">
+        <thead><tr>
+            <td style="width: 50%">Haskell</td>
+            <td>AST-Input</td>
+        </tr></thead>
+        <tr>
+            <td><pre class="haskell">let isEven Z = True;
+isEven (S Z) = False;
+isEven (S (S Z)) = (isEven n) in (isEven n)</pre></td>
+            <td><pre class="colorize">let(
+  (func(
+    decl("isEven", (data("Z")), True),
+    decl("isEven", (data("S", data("Z"))), False),
+    decl("isEven", (data("S", data("S", data("Z")))), call("isEven", "n"))
+  )),
+  call("isEven", "n")
+)</pre></td>
+        </tr>
+    </table>
+</section>
+
+<section>
+    <h2>Syntax</h2>
+    <table class="syntax-table">
+        <thead><tr>
+            <td style="width: 30%">Haskell</td>
+            <td style="width: 30%">AST-Input</td>
+            <td>Erläuterung</td>
+        </tr></thead>
+
+        <tr>
+            <td><pre><u>function</u> <u>param<sub>1</sub></u> ...</pre></td>
+            <td><pre><span class="identifier">call</span>(<u>function</u>, <u>param<sub>1</sub></u>, ...)</pre></td>
+            <td>Funktionsaufruf von <code><u>function</u></code> mit den gegebenen Parametern (min. 1)</td>
+        </tr>
+
+        <tr>
+            <td>
+                <pre><span class="keyword">case</span> (<u>arg<sub>1</sub></u>, ...) <span class="keyword">of</span> {
+    <u>option<sub>1</sub>;</u>
+    ...
+}</pre>
+            </td>
+            <td><pre><span class="identifier">case</span>(
+    (<u>arg<sub>1</sub></u>, ...),
+    (<u>option<sub>1</sub>:<a href="#option-info">option</a></u>,...)
+)</pre></td>
+            <td>Switch-Case, aufgerufen mit <code>arg<sub>i</sub></code> als Argumenten, mit den gegebenen Case-Patterns</td>
+        </tr>
+
+        <tr id="option-info">
+            <td><pre><u>pattern</u> <span class="keyword">-></span> <u>expression</u></pre></td>
+            <td><pre><span class="identifier">option</span>(<u>pattern</u>, <u>expression</u>)</pre></td>
+            <td>Ein Case-Pattern eines Switch-Cases.</td>
+        </tr>
+
+        <tr>
+            <td><code><u>DataName</u> <u>param<sub>1</sub></u> ...</code> <br> z.B. <code>Succ Zero</code></td>
+            <td><pre><span class="identifier">data</span>("<u>DataName</u>", <u>param<sub>1</sub></u>, ...)</pre></td>
+            <td>Erstellung eines Datenobjektes mittels eines Daten-Konstruktors, mit 0 oder mehr Parametern.</td>
+        </tr>
+
+        <tr id="#decl-info">
+            <td><pre><u>name</u> <u>pattern<sub>1</sub></u> ... <span class="keyword">=</span> <u>expression</u></pre></td>
+            <td><pre><span class="identifier">decl</span>(
+    <span class="string">"<u>name</u>"</span>,
+    (<u>pattern<sub>1</sub></u>, ...),
+    <u>expression</u>
+)</pre></td>
+            <td>Deklaration einer Variablen (Konstante oder Funktion), mit 0 oder mehr Parametern.</td>
+        </tr>
+
+        <tr>
+            <td><pre><u>name</u> <u>pattern<sub>1,1</sub></u> ... <span class="keyword">=</span> <u>expression<sub>1</sub></u>;
+<u>name</u> <u>pattern<sub>2,1</sub></u> ... <span class="keyword">=</span> <u>expression<sub>2</sub></u>;
+...</pre></td>
+            <td><pre><span class="identifier">func</span>(
+    <u>declaration<sub>1</sub>:<a href="##decl-info">decl</a></u>,
+    <u>declaration<sub>2</sub>:<a href="##decl-info">decl</a></u>,
+    ...
+)</pre></td>
+            <td>
+                Deklaration einer Funktion bestehend aus mehreren Patterns.
+                Dies ist wichtig, damit alles zusammen als eine einzige Deklaration angesehen wird.
+                In jeder Deklaration muss derselbe Name und dieselbe Anzahl an Parametern genutzt werden.
+            </td>
+        </tr>
+
+        <tr>
+            <td><pre><span class="keyword">if</span> <u>condition</u>
+<span class="keyword">then</span> <u>exprIfTrue</u>
+[<span class="keyword">else</span> <u>exprIfFalse</u>]</pre></td>
+            <td><pre><span class="identifier">if</span>(
+    <u>condition</u>,
+    <u>exprIfTrue</u>,
+    <u>exprIfFalse?</u>
+)</pre></td>
+            <td>If-Then-Else Statement (Else-Case ist optional)</td>
+        </tr>
+
+        <tr>
+            <td><pre><span class="keyword">\</span><u>param<sub>1</sub> ...</u> <span class="keyword">-></span> <u>expression</u></pre></td>
+            <td><pre><span class="identifier">lambda</span>(
+    (<u>param<sub>1</sub></u>, ...),
+    <u>expression</u>
+)</pre></td>
+            <td>Lambda-Funktion erstellen</td>
+        </tr>
+
+        <tr>
+            <td><pre><span class="keyword">let</span> <u>declaration<sub>1</sub></u>,
+    ...
+<span class="keyword">in</span> <u>expression</u></pre></td>
+            <td><pre><span class="identifier">let</span>(
+    (<u>declaration<sub>1</sub></u>, ...),
+    <u>expression</u>
+)</pre></td>
+            <td>Deklaration von einer oder mehreren Variablen, die im "<code>in</code>"-Part genutzt werden können.</td>
+        </tr>
+
+        <tr>
+            <td><pre><u>name</u></pre></td>
+            <td><pre><span class="string">"<u>name</u>"</span></pre></td>
+            <td>Referenzierung einer Variable</td>
+        </tr>
+
+        <tr>
+            <td><pre>_</pre></td>
+            <td><pre><span class="identifier">_</span></pre></td>
+            <td>Joker-Pattern</td>
+        </tr>
+
+        <tr>
+            <td><pre>()</pre></td>
+            <td><pre>()</pre></td>
+            <td>Leeres Tupel</td>
+        </tr>
+
+        <tr>
+            <td><pre>(<u>element<sub>1</sub></u>, <u>element<sub>2</sub>, ...</u>)</pre></td>
+            <td><pre>(<u>element<sub>1</sub></u>, <u>element<sub>2</sub>, ...</u>)</pre></td>
+            <td>Tupel mit mehreren Elementen</td>
+        </tr>
+
+        <tr>
+            <td><pre>True, False</pre></td>
+            <td><pre><span class="identifier">True</span>, <span class="identifier">False</span></pre></td>
+            <td>Equivalent zu <code><span class="identifier">data</span>(<span class="string">"True"</span>)</code> bzw. <code><span class="identifier">data</span>(<span class="string">"False"</span>)</code></td>
+        </tr>
+
+        <tr>
+            <td><pre><u>number:int</u></pre></td>
+            <td><pre><u>number:int</u></pre></td>
+            <td>Schreibweise für natürliche Zahlen, equivalent zu <code><span class="identifier">data</span>(<span class="string">"<u>number</u>"</span>)</code></td>
+        </tr>
+    </table>
+</section>
+
+<footer style="margin-top: 50px; text-align: center">
+    By RcCookie.
+    <p><a href="https://github.com/Rc-Cookie/Simple-Haskell">Github-Link</a></p>
+</footer>
+
+</body>
+<script src="index.js"></script>
+</html>

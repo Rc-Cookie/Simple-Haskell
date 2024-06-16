@@ -1,0 +1,73 @@
+body {
+    background-color: #1e1e1e;
+    color: whitesmoke;
+    font-family: "Segoe UI", Arial, serif;
+}
+
+section:not(:first-of-type) {
+    padding-top: 20px;
+}
+
+.ast-input {
+    width: 100%;
+    font-size: larger;
+    min-height: 100px;
+    border: 2px solid #444444;
+    border-radius: 10px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+#output {
+    font-size: larger;
+    border: 2px solid #444444;
+    border-radius: 10px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.keyword {
+    font-weight: bold;
+    color: deepskyblue;
+}
+
+.identifier {
+    color: #dcdcaa;
+}
+
+.string {
+    color: #ce9178;
+}
+
+.number {
+    color: #b4cda8;
+}
+
+.comment {
+    color: #699856;
+}
+
+.highlight {
+    color: darkred;
+}
+
+.replaced {
+    color: darkgray;
+    text-decoration: line-through;
+}
+
+.syntax-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.syntax-table thead {
+    font-weight: bold;
+}
+.syntax-table tr td {
+    border-bottom: solid #444444 3px;
+    padding-bottom: 3px;
+}
+
+#error {
+    color: red
+}
