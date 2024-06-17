@@ -20,7 +20,7 @@ async function simplify() {
 
     if (!r.ok) {
         let error;
-        if (json.detail.type)
+        if (json.detail?.type)
             error = (json.detail.type === "syntax" ? "Syntaxfehler im AST: " : "") + json.detail.message;
         else error = json.message || json.name;
         document.getElementById("error").innerText = error;

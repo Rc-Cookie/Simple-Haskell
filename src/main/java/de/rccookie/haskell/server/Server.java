@@ -11,6 +11,7 @@ import de.rccookie.haskell.simple.Simplification;
 import de.rccookie.haskell.simple.Simplifier;
 import de.rccookie.http.HttpRequest;
 import de.rccookie.http.Method;
+import de.rccookie.http.ResponseCode;
 import de.rccookie.http.Route;
 import de.rccookie.http.server.HttpProcessor;
 import de.rccookie.http.server.HttpRequestFailure;
@@ -40,6 +41,7 @@ public class Server extends HttpServer implements HttpRequestListener, HttpProce
             Rule.MATCH_NON_EMPTY_TUPLES_9,
             Rule.SPLIT_LETS_10
     );
+    private static final int MAX_LENGTH = 1000;
 
 
     public Server() {
@@ -49,6 +51,9 @@ public class Server extends HttpServer implements HttpRequestListener, HttpProce
 
     @POST
     public Simplification simplify(SimplificationArgs args) {
+        if(args.ast().replace(" ", "").length() > MAX_LENGTH)
+            throw new HttpRequestFailure(ResponseCode.PAYLOAD_TOO_LARGE, "AST too large");
+
         List<Rule> rules;
         if(args.rules().isEmpty())
             rules = RULES;
