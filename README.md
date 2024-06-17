@@ -1,5 +1,7 @@
 # Haskell-To-Simple-Haskell-Translator
 
+Official Website: https://rccookie.de/rwth/simplehaskell
+
 A simple program (with a tiny built-in http server/website) that allows to transform (a subset of) Haskell-Programs into Simple-Haskell-Programs.
 The simplification reports detail for each transformation step.
 
